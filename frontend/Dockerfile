@@ -2,6 +2,10 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Build argument for API URL
+ARG REACT_APP_API_URL=http://localhost:8000
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
 # Copy package files
 COPY package*.json ./
 
@@ -9,11 +13,8 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy source code
-COPY public/ ./public/
-COPY src/ ./src/
-
-# Set environment variable for API URL
-ENV REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
+COPY public ./public
+COPY src ./src
 
 # Expose port
 EXPOSE 3000
