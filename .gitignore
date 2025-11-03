@@ -128,7 +128,8 @@ dist/
 
 # Gatsby
 .cache/
-public
+# Note: public/ is NOT ignored as React needs it (containing index.html)
+# If using Gatsby, ignore gatsby-public/ instead
 
 # Storybook build outputs
 storybook-static

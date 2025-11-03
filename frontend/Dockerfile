@@ -13,8 +13,8 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy source code
-COPY public /app/public
-COPY src /app/src
+COPY public ./public
+COPY src ./src
 
 # Expose port
 EXPOSE 3000
