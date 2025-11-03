@@ -38,9 +38,31 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.ACCESS_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image (without push)
+        uses: docker/build-push-action@v5
+        id: build
+        with:
+          context: ./backend
+          push: false
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+       
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        id: trivy-scan
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Docker image to registry
+        if: steps.trivy-scan.outcome == 'success'
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -50,14 +72,14 @@ jobs:
           cache-to: type=gha,mode=max
 
 
-      - name: Commit and push changes
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add ci-cd-demo/helm-charts/job_app_apis/values.yaml
-          git commit -m "Update backend image tag [skip ci]" || exit 0
-          git push
+      # - name: Commit and push changes
+      #   if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add ci-cd-demo/helm-charts/job_app_apis/values.yaml
+      #     git commit -m "Update backend image tag [skip ci]" || exit 0
+      #     git push
 
 
   build-and-push-frontend:
@@ -78,9 +100,33 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.ACCESS_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image (without push)
+        uses: docker/build-push-action@v5
+        id: build-frontend
+        with:
+          context: ./frontend
+          push: false
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/job-app-application:latest
+          build-args: |
+            REACT_APP_API_URL=http://localhost:8000
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        id: trivy-scan-frontend
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ github.repository }}/job-app-application:latest
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Docker image to registry
+        if: steps.trivy-scan-frontend.outcome == 'success'
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
@@ -92,14 +138,14 @@ jobs:
           cache-to: type=gha,mode=max
 
 
-      - name: Commit and push changes
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add ci-cd-demo/helm-charts/job_app_application/values.yaml
-          git commit -m "Update frontend image tag [skip ci]" || exit 0
-          git push
+      # - name: Commit and push changes
+      #   if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add ci-cd-demo/helm-charts/job_app_application/values.yaml
+      #     git commit -m "Update frontend image tag [skip ci]" || exit 0
+      #     git push
 
 
 
