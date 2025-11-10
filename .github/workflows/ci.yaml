@@ -52,7 +52,7 @@ jobs:
           cache-to: type=gha,mode=max
        
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         id: trivy-scan
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -117,7 +117,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         id: trivy-scan-frontend
         with:
           image-ref: ${{ env.REGISTRY }}/${{ github.repository }}/job-app-application:latest
